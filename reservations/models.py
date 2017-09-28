@@ -8,6 +8,21 @@ class Table(models.Model):
     def __str__(self):
         return "Table: %s %s" % (self.id, self.tableName)
 
+    def reserve(self, start, end):
+        self.startTime = start
+        self.endTime = end
+        reservation, _ = Reservation.objects.get_or_create(table=self, startTime=start, endTime=end)
+
+        return reservation
+
+    def is_available_in_range(self, start, end):
+
+        reservations = Reservation.objects.filter(startTime__gte=start).filter(endTime__lte=end)
+        if len(reservations) == 0:
+            return True
+        else:
+            return False
+
 
 class Reservation(models.Model):
 
