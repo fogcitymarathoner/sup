@@ -2,22 +2,23 @@ from django.db import models
 
 
 class Table(models.Model):
-
     tableName = models.CharField(max_length=30)
 
     def __str__(self):
         return "Table: %s %s" % (self.id, self.tableName)
 
-    def reserve(self, start, end):
+    def reserve(self, reservingPerson, start, end):
         self.startTime = start
         self.endTime = end
         reservation, _ = Reservation.objects.get_or_create(table=self, startTime=start, endTime=end)
-
+        reservation.reservingPerson = reservingPerson
+        reservation.save()
         return reservation
 
     def is_available_in_range(self, start, end):
 
-        reservations = Reservation.objects.filter(startTime__gte=start).filter(endTime__lte=end)
+        reservations = Reservation.objects.filter(table__exact=self).filter(startTime__gte=start).filter(
+            endTime__lte=end)
         if len(reservations) == 0:
             return True
         else:
@@ -25,7 +26,6 @@ class Table(models.Model):
 
 
 class Reservation(models.Model):
-
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     reservingPerson = models.CharField(max_length=30)
     startTime = models.DateTimeField()
